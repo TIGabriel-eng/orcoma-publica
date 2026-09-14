@@ -1,0 +1,6 @@
+{
+  "name": "Grupo Orcoma - Contabilidade e Assessoria",
+  "description": "Landing Page de alta conversão do Grupo Orcoma: Contabilidade inteligente, assessoria para setor público, privado e terceiro setor com mais de 35 anos de tradição.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

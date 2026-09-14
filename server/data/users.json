@@ -1,0 +1,12 @@
+{
+  "users": [
+    {
+      "id": 3,
+      "name": "TI Orcoma",
+      "email": "tiorcomamaracas@orcoma.com.br",
+      "passwordHash": "$2b$10$fHlYb.Gdxq0tWEDqVgibnepGCA1LweXltmHJNWZ6i5HpuNVGYNUUO",
+      "role": "superadmin",
+      "createdAt": "2026-09-11T14:53:55.563Z"
+    }
+  ]
+}

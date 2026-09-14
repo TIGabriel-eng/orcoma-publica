@@ -1,0 +1,342 @@
+@import "tailwindcss";
+
+@theme {
+  --color-yellow-50: #fefce8;
+  --color-yellow-100: #fef9c3;
+  --color-yellow-200: #fef08a;
+  --color-yellow-300: #f4d03f;
+  --color-yellow-400: rgb(232, 184, 0);
+  --color-yellow-500: rgb(209, 166, 0);
+  --color-yellow-600: rgb(180, 143, 0);
+  --color-gold-400: rgb(232, 184, 0);
+  --color-gold-500: rgb(209, 166, 0);
+
+  --animate-marquee: marquee 30s linear infinite;
+  --animate-fadeInUp: fadeInUp 0.4s ease-out;
+  --animate-blink: blink 1.4s ease-in-out infinite;
+  --animate-slideUp: slideUp 0.4s ease-out;
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes blink {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.3;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@layer base {
+  html {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+}
+
+:root {
+  --orcoma-gradient: linear-gradient(160deg, rgb(12, 12, 204) 0%, rgb(26, 26, 255) 50%, rgb(0, 0, 179) 100%);
+  --orcoma-gradient-dark: linear-gradient(160deg, rgb(8, 8, 160) 0%, rgb(12, 12, 204) 50%, rgb(0, 0, 120) 100%);
+  --orcoma-gradient-light: linear-gradient(160deg, rgb(26, 26, 255) 0%, rgb(51, 51, 255) 50%, rgb(12, 12, 204) 100%);
+  --orcoma-blue-primary: rgb(12, 12, 204);
+  --orcoma-blue-light: rgb(26, 26, 255);
+  --orcoma-blue-dark: rgb(0, 0, 179);
+  --orcoma-yellow: rgb(232, 184, 0);
+}
+
+/* Gradient Classes */
+.bg-orcoma-gradient {
+  background: linear-gradient(160deg, rgb(12, 12, 204) 0%, rgb(26, 26, 255) 50%, rgb(0, 0, 179) 100%);
+}
+
+.bg-orcoma-gradient-dark {
+  background: linear-gradient(160deg, rgb(6, 6, 120) 0%, rgb(12, 12, 180) 50%, rgb(0, 0, 90) 100%);
+}
+
+.bg-orcoma-blue {
+  background-color: rgb(12, 12, 204);
+}
+
+.bg-orcoma-blue-dark {
+  background-color: rgb(0, 0, 179);
+}
+
+.bg-orcoma-blue-darker {
+  background-color: rgb(5, 5, 80);
+}
+
+.text-orcoma-blue {
+  color: rgb(12, 12, 204);
+}
+
+.text-orcoma-blue-dark {
+  color: rgb(0, 0, 179);
+}
+
+.border-orcoma-blue {
+  border-color: rgb(12, 12, 204);
+}
+
+.hover\:bg-orcoma-blue-light:hover {
+  background-color: rgb(26, 26, 255);
+}
+
+/* Legacy Navy Fallbacks remapped to Orcoma Blue Spectrum */
+.bg-navy-950 {
+  background-color: rgb(5, 5, 80);
+}
+
+.bg-navy-900 {
+  background-color: rgb(12, 12, 204);
+}
+
+.bg-navy-850 {
+  background-color: rgb(26, 26, 255);
+}
+
+.bg-navy-800 {
+  background-color: rgb(0, 0, 179);
+}
+
+.text-navy-950 {
+  color: rgb(5, 5, 80);
+}
+
+.text-navy-900 {
+  color: rgb(12, 12, 204);
+}
+
+.text-navy-850 {
+  color: rgb(26, 26, 255);
+}
+
+.border-navy-900 {
+  border-color: rgb(12, 12, 204);
+}
+
+.border-navy-800 {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.border-navy-700 {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+/* Custom Yellow Palette (rgb(232, 184, 0)) */
+.bg-gold-400,
+.bg-yellow-400 {
+  background-color: rgb(232, 184, 0) !important;
+}
+
+.bg-gold-500,
+.bg-yellow-500 {
+  background-color: rgb(209, 166, 0) !important;
+}
+
+.text-gold-400,
+.text-yellow-400 {
+  color: rgb(232, 184, 0) !important;
+}
+
+.text-yellow-500 {
+  color: rgb(209, 166, 0) !important;
+}
+
+.text-yellow-600 {
+  color: rgb(180, 143, 0) !important;
+}
+
+.border-yellow-400 {
+  border-color: rgb(232, 184, 0) !important;
+}
+
+.hover\:bg-yellow-300:hover,
+.hover\:bg-yellow-500:hover {
+  background-color: rgb(209, 166, 0) !important;
+}
+
+.hover\:border-yellow-400:hover {
+  border-color: rgb(232, 184, 0) !important;
+}
+
+.hover\:text-yellow-400:hover {
+  color: rgb(232, 184, 0) !important;
+}
+
+.hover\:text-yellow-600:hover {
+  color: rgb(180, 143, 0) !important;
+}
+
+/* Shadows & Glows */
+.shadow-corporate {
+  box-shadow: 0 4px 20px -2px rgba(12, 12, 204, 0.18);
+}
+
+.glow-gold {
+  box-shadow: 0 0 25px -5px rgba(232, 184, 0, 0.45);
+}
+
+.glow-blue {
+  box-shadow: 0 0 30px -5px rgba(26, 26, 255, 0.4);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(5, 5, 80);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(12, 12, 204);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(232, 184, 0);
+}
+
+/* --- Rich text: renderizado no blog --- */
+.rich-content h1,
+.rich-content h2,
+.rich-content h3,
+.rich-content h4 {
+  color: #12122B;
+  line-height: 1.3;
+}
+.rich-content h2 {
+  font-size: 1.625rem;
+  font-weight: 800;
+  margin: 1.5rem 0 0.75rem;
+}
+.rich-content h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 1.25rem 0 0.625rem;
+}
+.rich-content h4 {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 1.125rem 0 0.5rem;
+}
+.rich-content p {
+  margin: 0 0 1rem;
+}
+.rich-content ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin: 0 0 1rem;
+}
+.rich-content ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+  margin: 0 0 1rem;
+}
+.rich-content li {
+  margin: 0.25rem 0;
+}
+.rich-content blockquote {
+  border-left: 4px solid rgb(232, 184, 0);
+  padding: 0.5rem 0 0.5rem 1rem;
+  margin: 0 0 1rem;
+  color: #6B6B85;
+  font-style: italic;
+}
+.rich-content a {
+  color: #0924a7;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.rich-content a:hover {
+  color: #0c0ccc;
+}
+.rich-content strong {
+  font-weight: 700;
+  color: #12122B;
+}
+
+/* --- Rich text: editor (Tiptap) --- */
+.rich-editor .tiptap {
+  min-height: 300px;
+  padding: 1rem 1.25rem;
+  outline: none;
+  line-height: 1.75;
+  color: #1C1B2E;
+}
+.rich-editor .tiptap p {
+  margin: 0 0 0.75rem;
+}
+.rich-editor .tiptap h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #12122B;
+  margin: 1.25rem 0 0.5rem;
+}
+.rich-editor .tiptap h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #12122B;
+  margin: 1rem 0 0.5rem;
+}
+.rich-editor .tiptap ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+  margin: 0 0 0.75rem;
+}
+.rich-editor .tiptap ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+  margin: 0 0 0.75rem;
+}
+.rich-editor .tiptap blockquote {
+  border-left: 4px solid rgb(232, 184, 0);
+  padding: 0.25rem 0 0.25rem 1rem;
+  margin: 0 0 0.75rem;
+  color: #6B6885;
+  font-style: italic;
+}
+.rich-editor .tiptap a {
+  color: #0924a7;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.rich-editor .tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #6B6885;
+  pointer-events: none;
+  height: 0;
+}
+
+
