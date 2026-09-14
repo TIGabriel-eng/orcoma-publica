@@ -13,30 +13,29 @@ const { Pool } = pg;
 
 /**
  * Garante que TODA conexão use apenas o schema "publica" (as tabelas do
- * Orcoma Site ficam no schema "public" do mesmo projeto). O parâmetro é
- * colocado na própria connection string do pooler — funciona pelo Supavisor
- * (IPv4) sem precisar de query extra por conexão.
+ * Orcoma Site ficam no schema "public" do mesmo projeto) e que SSL esteja
+ * habilitado (obrigatório no pooler Supavisor do Supabase).
  */
-function withSearchPath(connectionString) {
+function buildConnectionString(connectionString) {
   const url = new URL(connectionString);
   url.searchParams.set('search_path', 'publica');
+  if (!url.searchParams.has('sslmode')) {
+    url.searchParams.set('sslmode', 'require');
+  }
   return url.toString();
 }
 
-function poolConfig() {
-  const url = new URL(DATABASE_URL);
-  const sslMode = url.searchParams.get('sslmode');
-  return {
-    connectionString: withSearchPath(DATABASE_URL),
-    max: 1,
-    idleTimeoutMillis: 5000,
-    connectionTimeoutMillis: 5000,
-    statement_timeout: 15000,
-    ssl: sslMode === 'disable' ? false : { rejectUnauthorized: false },
-  };
-}
+export const pool = new Pool({
+  connectionString: buildConnectionString(DATABASE_URL),
+  ssl: { rejectUnauthorized: false },
+  max: 1,
+  idleTimeoutMillis: 5000,
+  connectionTimeoutMillis: 5000,
+});
 
-export const pool = new Pool(poolConfig());
+pool.on('error', (err) => {
+  console.error('[db] Pool idle client error:', err.message);
+});
 
 /* ---------------------------- Row mappers ------------------------------ */
 
