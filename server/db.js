@@ -23,12 +23,20 @@ function withSearchPath(connectionString) {
   return url.toString();
 }
 
-export const pool = new Pool({
-  connectionString: withSearchPath(DATABASE_URL),
-  max: 5,
-  idleTimeoutMillis: 5000,
-  connectionTimeoutMillis: 5000,
-});
+function poolConfig() {
+  const url = new URL(DATABASE_URL);
+  const sslMode = url.searchParams.get('sslmode');
+  return {
+    connectionString: withSearchPath(DATABASE_URL),
+    max: 1,
+    idleTimeoutMillis: 5000,
+    connectionTimeoutMillis: 5000,
+    statement_timeout: 15000,
+    ssl: sslMode === 'disable' ? false : { rejectUnauthorized: false },
+  };
+}
+
+export const pool = new Pool(poolConfig());
 
 /* ---------------------------- Row mappers ------------------------------ */
 

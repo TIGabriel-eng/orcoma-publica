@@ -39,7 +39,7 @@ export async function apiLogin(email: string, password: string): Promise<LoginRe
       const data = (await response.json()) as { error?: string };
       if (data.error) message = data.error;
     } catch {
-      // corpo não é JSON
+      message = `Falha ao se comunicar com o servidor (status ${response.status}). Tente novamente em instantes.`;
     }
     throw new AuthError(message);
   }
