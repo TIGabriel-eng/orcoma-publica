@@ -13,29 +13,48 @@ const { Pool } = pg;
 
 /**
  * Garante que TODA conexão use apenas o schema "publica" (as tabelas do
- * Orcoma Site ficam no schema "public" do mesmo projeto) e que SSL esteja
- * habilitado (obrigatório no pooler Supavisor do Supabase).
+ * Orcoma Site ficam no schema "public" do mesmo projeto).
+ *
+ * NOTA sobre SSL: não adicionamos "sslmode" na string — nas versões novas do
+ * pg, "sslmode=require" é tratado como alias de "verify-full", que exige
+ * certificado válido e IGNORA o "rejectUnauthorized: false" das options,
+ * quebrando a conexão com o Supabase (self-signed). O SSL é ligado apenas
+ * pela opção `ssl: { rejectUnauthorized: false }` do Pool (padrão Supabase).
  */
 function buildConnectionString(connectionString) {
   const url = new URL(connectionString);
   url.searchParams.set('search_path', 'publica');
-  if (!url.searchParams.has('sslmode')) {
-    url.searchParams.set('sslmode', 'require');
-  }
   return url.toString();
 }
 
-export const pool = new Pool({
-  connectionString: buildConnectionString(DATABASE_URL),
-  ssl: { rejectUnauthorized: false },
-  max: 1,
-  idleTimeoutMillis: 5000,
-  connectionTimeoutMillis: 5000,
-});
+export const pool = DATABASE_URL
+  ? new Pool({
+      connectionString: buildConnectionString(DATABASE_URL),
+      ssl: { rejectUnauthorized: false },
+      max: 1,
+      idleTimeoutMillis: 5000,
+      connectionTimeoutMillis: 5000,
+    })
+  : null;
 
-pool.on('error', (err) => {
-  console.error('[db] Pool idle client error:', err.message);
-});
+if (pool) {
+  pool.on('error', (err) => {
+    console.error('[db] Pool idle client error:', err.message);
+  });
+}
+
+/**
+ * Executa uma query. Se o banco não estiver configurado (DATABASE_URL ausente),
+ * devolve um erro rápido e legível em vez de travar a função serverless.
+ */
+export async function dbQuery(text, params) {
+  if (!pool) {
+    const err = new Error('Banco de dados não configurado: DATABASE_URL ausente no servidor.');
+    err.status = 500;
+    throw err;
+  }
+  return pool.query(text, params);
+}
 
 /* ---------------------------- Row mappers ------------------------------ */
 
@@ -89,7 +108,7 @@ function mapForm(row) {
 /** Busca um usuário pelo e-mail (case-insensitive), com passwordHash. */
 export async function findUserByEmail(email) {
   const normalized = String(email ?? '').trim().toLowerCase();
-  const { rows } = await pool.query(
+  const { rows } = await dbQuery(
     'SELECT * FROM publica.users WHERE LOWER(email) = $1',
     [normalized],
   );
@@ -98,13 +117,13 @@ export async function findUserByEmail(email) {
 
 /** Busca um usuário pelo id, com passwordHash. */
 export async function findUserById(id) {
-  const { rows } = await pool.query('SELECT * FROM publica.users WHERE id = $1', [String(id)]);
+  const { rows } = await dbQuery('SELECT * FROM publica.users WHERE id = $1', [String(id)]);
   return mapUser(rows[0], { withHash: true });
 }
 
 /** Lista todos os usuários SEM o campo sensível (hash de senha). */
 export async function findAllUsers() {
-  const { rows } = await pool.query(
+  const { rows } = await dbQuery(
     'SELECT id, name, email, role, created_at FROM publica.users ORDER BY created_at DESC',
   );
   return rows.map((row) => mapUser(row));
@@ -112,7 +131,7 @@ export async function findAllUsers() {
 
 /** Cria um novo usuário e grava no banco. */
 export async function createUser({ name, email, passwordHash, role = 'admin' }) {
-  const { rows } = await pool.query(
+  const { rows } = await dbQuery(
     `INSERT INTO publica.users (name, email, password_hash, role)
      VALUES ($1, $2, $3, $4)
      RETURNING id, name, email, role, created_at`,
@@ -133,7 +152,7 @@ export async function updateUser(id, updates) {
   const values = keys.map((k) =>
     k === 'passwordHash' ? updates[k] : String(updates[k] ?? '').trim() || null,
   );
-  const { rows } = await pool.query(
+  const { rows } = await dbQuery(
     `UPDATE publica.users SET ${setSql} WHERE id = $1
      RETURNING id, name, email, role, created_at`,
     [String(id), ...values],
@@ -143,7 +162,7 @@ export async function updateUser(id, updates) {
 
 /** Exclui um usuário pelo id. */
 export async function deleteUser(id) {
-  const { rowCount } = await pool.query('DELETE FROM publica.users WHERE id = $1', [String(id)]);
+  const { rowCount } = await dbQuery('DELETE FROM publica.users WHERE id = $1', [String(id)]);
   return (rowCount ?? 0) > 0;
 }
 
@@ -157,20 +176,20 @@ export async function findAllPosts({ status } = {}) {
     params.push(String(status));
     sql += ' WHERE status = $1';
   }
-  const { rows } = await pool.query(sql, params);
+  const { rows } = await dbQuery(sql, params);
   return rows.map(mapPost);
 }
 
 /** Busca um post pelo id. */
 export async function findPostById(id) {
-  const { rows } = await pool.query('SELECT * FROM publica.posts WHERE id = $1', [String(id)]);
+  const { rows } = await dbQuery('SELECT * FROM publica.posts WHERE id = $1', [String(id)]);
   return mapPost(rows[0]);
 }
 
 /** Busca um post pelo slug (case-insensitive). */
 export async function findPostBySlug(slug) {
   const normalized = String(slug ?? '').trim().toLowerCase();
-  const { rows } = await pool.query('SELECT * FROM publica.posts WHERE LOWER(slug) = $1', [
+  const { rows } = await dbQuery('SELECT * FROM publica.posts WHERE LOWER(slug) = $1', [
     normalized,
   ]);
   return mapPost(rows[0]);
@@ -205,7 +224,7 @@ export async function createPost(post) {
   const valSql = columns.map((_, i) => `$${i + 1}`).join(', ');
   const values = columns.map((c) => serializePostValue(c, row[c]));
 
-  const { rows } = await pool.query(
+  const { rows } = await dbQuery(
     `INSERT INTO publica.posts (${colSql}) VALUES (${valSql}) RETURNING *`,
     values,
   );
@@ -234,7 +253,7 @@ export async function updatePost(id, updates) {
   const setSql = keys.map((k, i) => `${POST_COLUMNS[k] ?? k} = $${i + 2}`).join(', ');
   const values = keys.map((k) => serializePostValue(k, updates[k]));
 
-  const { rows } = await pool.query(
+  const { rows } = await dbQuery(
     `UPDATE publica.posts SET ${setSql} WHERE id = $1 RETURNING *`,
     [String(id), ...values],
   );
@@ -250,7 +269,7 @@ function serializePostValue(key, value) {
 
 /** Exclui um post pelo id. */
 export async function deletePost(id) {
-  const { rowCount } = await pool.query('DELETE FROM publica.posts WHERE id = $1', [String(id)]);
+  const { rowCount } = await dbQuery('DELETE FROM publica.posts WHERE id = $1', [String(id)]);
   return (rowCount ?? 0) > 0;
 }
 
@@ -258,13 +277,13 @@ export async function deletePost(id) {
 
 /** Lista todos os formulários enviados (mais recentes primeiro). */
 export async function findAllForms() {
-  const { rows } = await pool.query('SELECT * FROM publica.forms ORDER BY created_at DESC');
+  const { rows } = await dbQuery('SELECT * FROM publica.forms ORDER BY created_at DESC');
   return rows.map(mapForm);
 }
 
 /** Registra um novo envio de formulário. */
 export async function createForm({ nome, telefone, email, formaContato, origem }) {
-  const { rows } = await pool.query(
+  const { rows } = await dbQuery(
     `INSERT INTO publica.forms (nome, telefone, email, forma_contato, origem)
      VALUES ($1, $2, $3, $4, $5)
      RETURNING *`,
@@ -281,6 +300,6 @@ export async function createForm({ nome, telefone, email, formaContato, origem }
 
 /** Exclui um formulário pelo id. */
 export async function deleteForm(id) {
-  const { rowCount } = await pool.query('DELETE FROM publica.forms WHERE id = $1', [String(id)]);
+  const { rowCount } = await dbQuery('DELETE FROM publica.forms WHERE id = $1', [String(id)]);
   return (rowCount ?? 0) > 0;
 }

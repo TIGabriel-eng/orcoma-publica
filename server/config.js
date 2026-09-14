@@ -3,20 +3,15 @@ import 'dotenv/config';
 /**
  * Configuração central da API.
  * Todos os valores podem ser sobrescritos via variáveis de ambiente (.env).
+ *
+ * IMPORTANTE: nenhuma dessas leituras lança erro no carregamento do módulo.
+ * Em serverless (Vercel), um throw no topo impede a função de inicializar e
+ * se manifesta como timeout/504 em TODAS as rotas. Os módulos que precisam
+ * dessas variáveis (db.js, auth) falham de forma rápida e legível EM USO.
  */
 
-/** Falha rápido com mensagem clara em vez de usar um valor padrão silencioso
- * que aponta para host morto (causou hangs de 300s na Vercel). */
-function requireEnv(name) {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`[config] Variável de ambiente ${name} não definida. Configure no .env (local) ou no painel da Vercel. Veja .env.example.`);
-  }
-  return value;
-}
-
 // Chave de assinatura dos JWTs — OBRIGATÓRIO configurar em produção!
-export const JWT_SECRET = requireEnv('JWT_SECRET');
+export const JWT_SECRET = process.env.JWT_SECRET || '';
 
 // Tempo de expiração: 8 horas (aceita "8h", "480m", "28800s", etc.)
 export const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
@@ -29,7 +24,7 @@ export const PORT = Number(process.env.PORT ?? 4000);
 // Connection string do Supabase (schema publica). O PostgreSQL mais o
 // parâmetro ?search_path=publica garante que este app SÓ toca as tabelas
 // da Orcoma Pública — as tabelas do Orcoma Site (Django) ficam em "public".
-export const DATABASE_URL = requireEnv('DATABASE_URL');
+export const DATABASE_URL = process.env.DATABASE_URL || '';
 
 /* ------------------------- Supabase Storage --------------------------- */
 
